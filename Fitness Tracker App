@@ -1,0 +1,98 @@
+'''
+Kyle Bethel
+SDEV140 Final Project
+10/15/23
+
+This simple Fitness Tracker program will track 3 types of cardio and 6 types of body-weight excersises.  It will allow the user to pick an 
+excercise then specify either the time for cardio or reps and sets for resistance training.  It will save in a file that the user can keep track of.
+
+'''
+
+
+
+import tkinter as tk
+from tkinter import ttk
+
+# Create a dictionary to store workout data
+workout_data = {}
+
+# Function to add a workout
+def add_workout(exercise):
+    if exercise in ["Jogging/Running", "Stairs", "Bike"]:
+        time_ran = sets_entry.get()
+        sets = "N/A" # Jogging/running, stairs, and bike do not need a rep/set option
+        reps = "N/A"
+    else:
+        sets = sets_entry.get()
+        reps = reps_entry.get()
+        time_ran = "N/A"  # The other exercises do not need a time option 
+    
+    if exercise not in workout_data:
+        workout_data[exercise] = []
+    
+    workout_data[exercise].append({"sets": sets, "reps": reps, "time_ran": time_ran})
+    
+    sets_entry.delete(0, tk.END)
+    reps_entry.delete(0, tk.END)
+    status_label.config(text="Workout added successfully!") # Once workout is added, it would clear the field
+
+# Function to save workout data to CSV file
+def save_workout_data():
+    with open('workout_data.csv', 'w') as file:
+        for exercise, data in workout_data.items():
+            for workout in data:
+                if exercise in ["Jogging/Running", "Stairs", "Bike"]:
+                    file.write(f"{exercise},{workout['time_ran']}\n")
+                else:
+                    file.write(f"{exercise},{workout['sets']},{workout['reps']}\n")
+    status_label.config(text="Workout data saved to workout_data.csv")
+
+# Create main application window
+app = tk.Tk()
+app.title("Fitness Tracker")
+
+# GUI buttons
+sets_label = ttk.Label(app, text="Sets:")
+sets_entry = ttk.Entry(app)
+reps_label = ttk.Label(app, text="Reps:")
+reps_entry = ttk.Entry(app)
+add_button = ttk.Button(app, text="Add Workout", command=lambda: add_workout("Jumpin Jacks")) # Can not figure out how to save exercise under the button name.  Saves it under jumping jacks.
+save_button = ttk.Button(app, text="Save Workout Data", command=save_workout_data)
+status_label = ttk.Label(app, text="")
+
+exercise_buttons = []
+exercise_names = ["Jogging/Running", "Bike", "Stairs", "Jumping Jacks", "Push Ups", "Sit Ups", "Pull Ups", "Squats", "Calf Raises"]
+
+for exercise in exercise_names:
+    exercise_buttons.append(ttk.Button(app, text=exercise, command=lambda exercise=exercise: add_workout(exercise)))
+
+# Layout of GUI 
+sets_label.grid(row=0, column=0, padx=10, pady=5)
+sets_entry.grid(row=0, column=1, padx=10, pady=5)
+reps_label.grid(row=1, column=0, padx=10, pady=5)
+reps_entry.grid(row=1, column=1, padx=10, pady=5)
+add_button.grid(row=2, column=0, padx=10, pady=5)
+save_button.grid(row=2, column=1, padx=10, pady=5)
+status_label.grid(row=3, column=0, columnspan=2, padx=10, pady=5)
+row_number = 4
+for exercise_button in exercise_buttons:
+    exercise_button.grid(row=row_number, column=0, columnspan=2, padx=10, pady=5)
+    row_number += 1
+
+# Event handler for changing labels based on exercise selection
+def on_button_click(exercise):
+    if exercise in ["Jogging/Running", "Stairs", "Bike"]:
+        sets_label.config(text="Time Ran (min):")
+        reps_label.config(text="")
+        reps_entry.delete(0, tk.END)
+    else:
+        sets_label.config(text="Sets:")
+        reps_label.config(text="Reps:")
+    sets_entry.delete(0, tk.END)
+    reps_entry.delete(0, tk.END)
+
+for exercise_button in exercise_buttons:
+    exercise_button['command'] = lambda button=exercise_button: on_button_click(button["text"])
+
+# Start the app
+app.mainloop()
